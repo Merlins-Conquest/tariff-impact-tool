@@ -34,9 +34,6 @@ public class TariffController {
         return tariffService.getAllImpacts();
     }
 
-    @GetMapping("/test")
-public String test() {
-    return "Backend is running!";
-}
+
 
 }
