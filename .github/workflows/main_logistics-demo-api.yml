@@ -1,4 +1,3 @@
-# Build & deploy Spring Boot JAR to Azure Web App
 name: Build and deploy JAR app to Azure Web App - logistics-demo-api
 
 on:
@@ -20,12 +19,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Sanity: show where we are and confirm pom.xml exists
-      - name: Verify repo layout
+      - name: Detect app directory (pom.xml)
+        id: detect
         run: |
-          pwd
-          ls -la
-          find . -maxdepth 3 -name "pom.xml" -print
+          set -e
+          FILE=$(find . -type f -name "pom.xml" | head -n1)
+          if [ -z "$FILE" ]; then
+            echo "No pom.xml found in repo." >&2
+            exit 1
+          fi
+          DIR=$(dirname "$FILE")
+          echo "APP_DIR=$DIR" >> $GITHUB_ENV
+          echo "app_dir=$DIR" >> $GITHUB_OUTPUT
+          echo "Detected app dir: $DIR"
+          ls -la "$DIR"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -34,17 +41,27 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
-      - name: Make mvnw executable
-        run: chmod +x mvnw
+      - name: Make mvnw executable (if present)
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          if [ -f mvnw ]; then chmod +x mvnw; fi
 
-      - name: Build with Maven (skip tests)
-        run: ./mvnw -B -DskipTests package
+      - name: Build with Maven (prefer wrapper)
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          if [ -f mvnw ]; then
+            ./mvnw -B -DskipTests package
+          else
+            echo "mvnw not found, using system mvn"
+            mvn -v
+            mvn -B -DskipTests package
+          fi
 
-      - name: Upload artifact for deployment
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: target/*.jar
+          path: ${{ env.APP_DIR }}/target/*.jar
 
   deploy:
     runs-on: ubuntu-latest
@@ -54,13 +71,12 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: java-app
           path: app
 
-      # OIDC login with your federated credentials (you already set these secrets)
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -72,5 +88,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          slot-name: 'Production'
+          slot-name: Production
           package: app/*.jar
