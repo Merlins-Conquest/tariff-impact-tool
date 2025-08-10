@@ -149,22 +149,32 @@ export default function App() {
         <p style={{ marginBottom: "0.5rem" }}>
           Paste or write your tariff event in JSON format below. Once submitted, it will be sent to our API and appear in the Live Feed.
         </p>
-        <textarea
-          value={json}
-          onChange={(e) => setJson(e.target.value)}
-          spellCheck={false}
-          autoComplete="off"
-          style={{
-            width: "100%",
-            height: "140px",
-            fontFamily: "monospace",
-            fontSize: "0.9rem",
-            padding: "0.5rem",
-            border: `1px solid ${colors.purple}`,
-            borderRadius: "4px",
-            marginBottom: "0.5rem",
-          }}
-        />
+      <textarea
+  id="tariff-json"
+  name="tariffJson"
+  value={json}
+  onChange={(e) => setJson(e.target.value)}
+  spellCheck={false}
+  autoCorrect="off"
+  autoCapitalize="none"
+  autoComplete="off"
+  // password-manager hints (harmless if not present)
+  data-lpignore="true"      // LastPass
+  data-1p-ignore="true"     // 1Password
+  data-form-type="other"    // Dashlane
+  inputMode="text"
+  style={{
+    width: "100%",
+    height: "140px",
+    fontFamily: "monospace",
+    fontSize: "0.9rem",
+    padding: "0.5rem",
+    border: `1px solid ${colors.purple}`,
+    borderRadius: "4px",
+    marginBottom: "0.5rem",
+  }}
+/>
+
         <div>
           <button
             onClick={send}
