@@ -26,7 +26,6 @@ const tdStyle = {
   padding: "0.5rem",
 };
 
-// ---------- UI pieces (outside App so they are stable) ----------
 function NavBar({ page, setPage }) {
   return (
     <nav
@@ -41,15 +40,22 @@ function NavBar({ page, setPage }) {
     >
       <div
         style={{
-          fontWeight: "bold",
-          fontSize: "1.3rem",
+          fontWeight: "900",
+          fontSize: "2rem",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          letterSpacing: "1px",
         }}
         onClick={() => setPage("home")}
       >
-        Tariff Impact Tool
+        <span style={{ color: "#4d148c", backgroundColor: colors.white, padding: "0.2rem 0.4rem", borderRadius: "4px" }}>
+          Tariff Impact
+        </span>
+        <span style={{ color: "#ff6600", marginLeft: "0.3rem" }}>
+          Tool
+        </span>
       </div>
       <div>
         {["home", "about", "design"].map((p) => (
@@ -75,6 +81,7 @@ function NavBar({ page, setPage }) {
     </nav>
   );
 }
+
 
 function Footer() {
   return (
@@ -351,7 +358,7 @@ function DesignPage() {
 
         {/* Link to live Figma */}
         <a
-          href="https://www.figma.com" // replace with your actual Figma link
+          href="https://www.figma.com/board/FVlUu87LI4szbnNyIeCn8D/Tariff-Impact-Tool?t=C3jIpskltc41qS9D-1" // replace with your actual Figma link
           target="_blank"
           rel="noopener noreferrer"
           style={{ color: colors.orange, fontWeight: "bold", fontSize: "1.1rem" }}
