@@ -78,18 +78,21 @@ function NavBar({ page, setPage }) {
 
 function Footer() {
   return (
-    <footer
-      style={{
-        marginTop: "2rem",
-        padding: "1rem",
-        backgroundColor: colors.purple,
-        color: colors.white,
-        textAlign: "center",
-        fontSize: "0.9rem",
-      }}
-    >
-      Created by Randy Ramsammy – FedEx Dataworks Intern
-    </footer>
+<footer style={{
+  marginTop: '2rem',
+  padding: '1rem',
+  backgroundColor: '#4D148C', // FedEx purple
+  color: 'white',
+  textAlign: 'center'
+}}>
+  <strong style={{ fontSize: '1.1rem' }}>
+    Created by Randy Ramsammy
+  </strong>
+  <span style={{ display: 'block', fontSize: '0.9rem', marginTop: '0.2rem' }}>
+    FedEx Dataworks Intern
+  </span>
+</footer>
+
   );
 }
 
@@ -245,33 +248,170 @@ function HomePage({ textRef, defaultJson, status, onSend, feed, onRefresh }) {
 function AboutPage() {
   return (
     <div style={{ padding: "2rem", backgroundColor: colors.lightGray }}>
-      <Card title="About">
-        <p>
-          Tariff Impact Tool is designed to help logistics professionals monitor, send, and analyze
-          tariff events in real time. This tool integrates with APIs to process tariff data instantly,
-          providing actionable insights.
+      <Hero
+        title="About the Tariff Impact Tool"
+        subtitle="A technical demonstration of an event‑driven architecture for logistics and clearance workflows."
+      />
+
+      <Card title="What this project is">
+        <p style={{ marginTop: 0 }}>
+          The <strong>Tariff Impact Tool</strong> is a proof‑of‑concept I built to showcase my ability to design and
+          implement <strong>event‑driven systems</strong> for logistics and customs clearance. It demonstrates end‑to‑end
+          streaming—from a React UI through a backend API into <strong>Azure Event Hubs</strong> (Kafka‑compatible)—and
+          a live feed UI that surfaces recent events instantly.
+        </p>
+        <div style={{ marginTop: "0.75rem" }}>
+          <Badge>React (Azure Static Web Apps)</Badge>
+          <Badge>API (Azure App Service)</Badge>
+          <Badge>Azure Event Hubs (Kafka)</Badge>
+          <Badge>TypeScript/JavaScript</Badge>
+          <Badge>Event‑driven design</Badge>
+        </div>
+      </Card>
+
+      <Card title="Why it matters for clearance platforms">
+        <ul style={{ paddingLeft: 0, listStyle: "none", margin: 0 }}>
+          <CheckItem>Enable <strong>touchless clearance</strong> over time by streaming tariff signals as events.</CheckItem>
+          <CheckItem>Provide <strong>real‑time visibility</strong> into tariff impact on specific commodities.</CheckItem>
+          <CheckItem>Decouple producers/consumers with a <strong>scalable message bus</strong> (Event Hubs/Kafka).</CheckItem>
+          <CheckItem>Keep the UI fast with a lightweight <strong>browser cache</strong>—no DB required for the demo.</CheckItem>
+          <CheckItem>Production‑ready direction: add auth, persistence (Cosmos/SQL), and push updates via SignalR.</CheckItem>
+        </ul>
+      </Card>
+
+      <Card title="How it works (high level)">
+        <ol style={{ marginTop: 0, paddingLeft: "1.1rem" }}>
+          <li><strong>Send Tariff Event</strong> — UI posts JSON to <code>/demo/send</code>; API validates and publishes to Event Hubs.</li>
+          <li><strong>Live Feed</strong> — UI calls <code>/feed/latest</code>; API reads recent events from Event Hubs and returns them.</li>
+          <li><strong>UX</strong> — The table renders events and also saves a short history in <code>localStorage</code> for snappy reloads.</li>
+        </ol>
+        <p style={{ margin: 0 }}>
+          This mirrors a modern clearance workflow where upstream systems emit events and downstream services react,
+          enrich, and notify operations—without tight coupling.
+        </p>
+      </Card>
+
+      <Card title="Roadmap (if taken to production)">
+        <ul style={{ marginTop: 0 }}>
+          <CheckItem>Persistence tier (Cosmos DB or SQL) for auditability and long‑term analytics.</CheckItem>
+          <CheckItem>Secure endpoints with API keys/JWT + managed identities; store secrets in Key Vault.</CheckItem>
+          <CheckItem>Push updates via <strong>Azure SignalR</strong> to remove manual refresh.</CheckItem>
+          <CheckItem>Dashboards for SKU/HS code impact with filters, charts, and exports.</CheckItem>
+          <CheckItem>Automated decisions (risk rules, thresholds) to reduce manual touches.</CheckItem>
+        </ul>
+      </Card>
+
+      <Card title="Contact & Credits">
+        <p style={{ marginTop: 0 }}>
+          Built by <strong>Randy Ramsammy</strong> — FedEx Dataworks Intern. This demo is intended for hiring managers
+          and platform teams evaluating event‑driven approaches to clearance.
         </p>
       </Card>
     </div>
   );
 }
 
+
 function DesignPage() {
   return (
     <div style={{ padding: "2rem", backgroundColor: colors.lightGray }}>
-      <Card title="Design">
-        <p>This page contains design assets and prototypes for the Tariff Impact Tool.</p>
+      <Card title="Design Overview">
+        <p>
+          The Tariff Impact Tool is an event-driven demo designed to simulate
+          how clearance platforms can achieve touchless clearance and
+          real-time visibility into tariff impacts for specific commodities.
+        </p>
+        <p>
+          The application uses a React frontend hosted on Azure Static Web Apps,
+          an Azure App Service backend API, and Azure Event Hubs (Kafka-compatible)
+          for streaming tariff events. Data is cached in the browser’s
+          <code> localStorage </code> for quick reloads without a database.
+        </p>
+        <p>
+          Key goals:
+        </p>
+        <ul>
+          <li>Demonstrate end-to-end streaming from UI → API → Event Hubs → UI</li>
+          <li>Highlight scalable architecture patterns for logistics clearance</li>
+          <li>Show how commodity-level tariff data can be standardized in JSON</li>
+        </ul>
+
+        {/* Figma preview image hosted in Git repo */}
+        <div style={{ margin: "2rem 0" }}>
+          <img
+              src="/images/arch_figma.png"
+            alt="Figma Design Preview"
+            style={{
+              maxWidth: "100%",
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+            }}
+          />
+        </div>
+
+        {/* Link to live Figma */}
         <a
-          href="https://www.figma.com"
+          href="https://www.figma.com" // replace with your actual Figma link
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: colors.orange }}
+          style={{ color: colors.orange, fontWeight: "bold", fontSize: "1.1rem" }}
         >
-          View Figma Design
+          View Full Figma Design →
         </a>
       </Card>
     </div>
   );
+}
+  function Hero({ title, subtitle }) {
+  return (
+    <div
+      style={{
+        background: `linear-gradient(135deg, ${colors.purple} 0%, ${colors.orange} 100%)`,
+        color: colors.white,
+        borderRadius: "12px",
+        padding: "2rem",
+        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+        marginBottom: "1.5rem",
+      }}
+    >
+      <h1 style={{ margin: 0, fontSize: "1.8rem", lineHeight: 1.2 }}>{title}</h1>
+      <p style={{ margin: "0.5rem 0 0", opacity: 0.95 }}>{subtitle}</p>
+    </div>
+  );
+}
+
+function Badge({ children }) {
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: "0.35rem 0.6rem",
+        borderRadius: "999px",
+        backgroundColor: "#F1ECF8",
+        color: colors.purple,
+        fontSize: "0.85rem",
+        fontWeight: 600,
+        marginRight: "0.5rem",
+        marginBottom: "0.5rem",
+        border: `1px solid rgba(77,20,140,0.12)`,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function CheckItem({ children }) {
+  return (
+    <li style={{ display: "flex", alignItems: "flex-start", marginBottom: "0.5rem" }}>
+      <svg width="18" height="18" viewBox="0 0 24 24" style={{ marginTop: 2, marginRight: 8 }}>
+        <path fill={colors.orange} d="M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.5-1.5z" />
+      </svg>
+      <span>{children}</span>
+    </li>
+  );
+}
+
 }
 
 // ---------- App ----------
