@@ -1,4 +1,21 @@
 import { useState, useEffect } from "react";
+// add this helper near the top of the file
+function normalizeEvent(item) {
+  // already an object
+  if (item && typeof item === "object") return item;
+
+  // try to parse stringified JSON
+  if (typeof item === "string") {
+    try {
+      return JSON.parse(item);
+    } catch {
+      return { raw: item };
+    }
+  }
+
+  // fallback
+  return { raw: String(item) };
+}
 
 // FedEx color palette
 const colors = {
@@ -35,15 +52,29 @@ export default function App() {
     }
   };
 
-  const loadFeed = async () => {
-    try {
-      const res = await fetch(`${API}/feed/latest`);
-      const data = await res.json();
-      setFeed(data);
-    } catch (err) {
-      setFeed([{ error: err.message }]);
-    }
-  };
+const loadFeed = async () => {
+  try {
+    const res = await fetch(`${API}/feed/latest`);
+    const data = await res.json();
+    setFeed(
+      Array.isArray(data)
+        ? data.map((d) => {
+            if (typeof d === "string") {
+              try {
+                return JSON.parse(d);
+              } catch {
+                return { raw: d };
+              }
+            }
+            return d;
+          })
+        : []
+    );
+  } catch (err) {
+    setFeed([{ error: err.message }]);
+  }
+};
+
 
   useEffect(() => {
     if (page === "home") {
@@ -206,31 +237,33 @@ export default function App() {
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {feed.length === 0 && (
-                <tr>
-                  <td colSpan={4} style={{ padding: "0.5rem", textAlign: "center" }}>
-                    No data
-                  </td>
-                </tr>
-              )}
-              {feed.map((item, idx) => {
-                const row = typeof item === "object" ? item : { raw: String(item) };
-                return (
-                  <tr
-                    key={idx}
-                    style={{
-                      backgroundColor: idx % 2 === 0 ? "#fafafa" : colors.white,
-                    }}
-                  >
-                    <td style={tdStyle}>{row.commodity || "-"}</td>
-                    <td style={tdStyle}>{row.rate !== undefined ? row.rate : "-"}</td>
-                    <td style={tdStyle}>{row.type || "-"}</td>
-                    <td style={tdStyle}>{JSON.stringify(row)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
+<tbody>
+  {feed.length === 0 && (
+    <tr>
+      <td colSpan={4} style={{ padding: "0.5rem", textAlign: "center" }}>
+        No data
+      </td>
+    </tr>
+  )}
+
+  {feed.map((item, idx) => {
+    const evt = normalizeEvent(item);
+    const { commodity, rate, type, ...rest } = evt || {};
+    return (
+      <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "#fafafa" : "#fff" }}>
+        <td style={tdStyle}>{commodity ?? "-"}</td>
+        <td style={tdStyle}>
+          {typeof rate === "number" ? rate : (rate ?? "-")}
+        </td>
+        <td style={tdStyle}>{type ?? "-"}</td>
+        <td style={tdStyle}>
+          {Object.keys(rest).length ? JSON.stringify(rest) : "—"}
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
+
           </table>
         </div>
       </Card>
