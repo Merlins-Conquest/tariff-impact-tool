@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // ---------- Helpers ----------
 function normalizeEvent(item) {
@@ -21,51 +21,14 @@ const colors = {
 
 const defaultJson = '{\n  "commodity": "electronics",\n  "rate": 0.1\n}';
 
-// ---------- App ----------
-export default function App() {
-  const [json, setJson] = useState(defaultJson);
-  const [status, setStatus] = useState("");
-  const [feed, setFeed] = useState([]);
-  const [page, setPage] = useState("home"); // home | about | design
-  const API = import.meta.env.VITE_API_URL;
+const tdStyle = {
+  border: `1px solid ${colors.lightGray}`,
+  padding: "0.5rem",
+};
 
-  const send = async () => {
-    try {
-      const body = JSON.parse(json);
-      const res = await fetch(`${API}/demo/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      setStatus("Tariff event sent successfully!");
-      setTimeout(() => setStatus(""), 3000);
-      loadFeed();
-    } catch (err) {
-      setStatus("Error: " + err.message);
-    }
-  };
-
-  const loadFeed = async () => {
-    try {
-      const res = await fetch(`${API}/feed/latest`);
-      const data = await res.json();
-      const parsed = Array.isArray(data)
-        ? data.map((d) => normalizeEvent(d))
-        : [];
-      setFeed(parsed);
-    } catch (err) {
-      setFeed([{ error: err.message }]);
-    }
-  };
-
-  useEffect(() => {
-    if (page === "home") loadFeed();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
-
-  // ---------- UI pieces ----------
-  const NavBar = () => (
+// ---------- UI pieces (outside App so they are stable) ----------
+function NavBar({ page, setPage }) {
+  return (
     <nav
       style={{
         backgroundColor: colors.purple,
@@ -111,8 +74,10 @@ export default function App() {
       </div>
     </nav>
   );
+}
 
-  const Footer = () => (
+function Footer() {
+  return (
     <footer
       style={{
         marginTop: "2rem",
@@ -126,8 +91,10 @@ export default function App() {
       Created by Randy Ramsammy – FedEx Dataworks Intern
     </footer>
   );
+}
 
-  const Card = ({ title, children }) => (
+function Card({ title, children }) {
+  return (
     <section
       style={{
         backgroundColor: colors.white,
@@ -141,43 +108,42 @@ export default function App() {
       {children}
     </section>
   );
+}
 
-  // ---------- Pages ----------
-  const HomePage = () => (
+function HomePage({ textRef, defaultJson, status, onSend, feed, onRefresh }) {
+  return (
     <div style={{ padding: "2rem", backgroundColor: colors.lightGray }}>
       <Card title="Enter a Tariff Event">
         <p style={{ marginBottom: "0.5rem" }}>
           Paste or write your tariff event in JSON format below. Once submitted, it will be sent to our API and appear in the Live Feed.
         </p>
-      <textarea
-  id="tariff-json"
-  name="tariffJson"
-  value={json}
-  onChange={(e) => setJson(e.target.value)}
-  spellCheck={false}
-  autoCorrect="off"
-  autoCapitalize="none"
-  autoComplete="off"
-  // password-manager hints (harmless if not present)
-  data-lpignore="true"      // LastPass
-  data-1p-ignore="true"     // 1Password
-  data-form-type="other"    // Dashlane
-  inputMode="text"
-  style={{
-    width: "100%",
-    height: "140px",
-    fontFamily: "monospace",
-    fontSize: "0.9rem",
-    padding: "0.5rem",
-    border: `1px solid ${colors.purple}`,
-    borderRadius: "4px",
-    marginBottom: "0.5rem",
-  }}
-/>
-
+        <textarea
+          id="tariff-json"
+          name="tariffJson"
+          defaultValue={defaultJson}
+          ref={textRef}
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="none"
+          autoComplete="off"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          data-form-type="other"
+          inputMode="text"
+          style={{
+            width: "100%",
+            height: "140px",
+            fontFamily: "monospace",
+            fontSize: "0.9rem",
+            padding: "0.5rem",
+            border: `1px solid ${colors.purple}`,
+            borderRadius: "4px",
+            marginBottom: "0.5rem",
+          }}
+        />
         <div>
           <button
-            onClick={send}
+            onClick={onSend}
             style={{
               padding: "0.6rem 1.2rem",
               backgroundColor: colors.orange,
@@ -197,7 +163,7 @@ export default function App() {
       <Card title="Live Tariff Feed">
         <p>This section shows all recent tariff events from our system in real time.</p>
         <button
-          onClick={loadFeed}
+          onClick={onRefresh}
           style={{
             padding: "0.4rem 1rem",
             backgroundColor: colors.purple,
@@ -274,20 +240,24 @@ export default function App() {
       </Card>
     </div>
   );
+}
 
-  const AboutPage = () => (
+function AboutPage() {
+  return (
     <div style={{ padding: "2rem", backgroundColor: colors.lightGray }}>
       <Card title="About">
         <p>
-          Tariff Impact Tool is designed to help logistics professionals monitor, send, and analyze tariff
-          events in real time. This tool integrates with APIs to process tariff data instantly, providing
-          actionable insights.
+          Tariff Impact Tool is designed to help logistics professionals monitor, send, and analyze
+          tariff events in real time. This tool integrates with APIs to process tariff data instantly,
+          providing actionable insights.
         </p>
       </Card>
     </div>
   );
+}
 
-  const DesignPage = () => (
+function DesignPage() {
+  return (
     <div style={{ padding: "2rem", backgroundColor: colors.lightGray }}>
       <Card title="Design">
         <p>This page contains design assets and prototypes for the Tariff Impact Tool.</p>
@@ -302,17 +272,64 @@ export default function App() {
       </Card>
     </div>
   );
+}
 
-  const tdStyle = {
-    border: `1px solid ${colors.lightGray}`,
-    padding: "0.5rem",
+// ---------- App ----------
+export default function App() {
+  const [status, setStatus] = useState("");
+  const [feed, setFeed] = useState([]);
+  const [page, setPage] = useState("home"); // home | about | design
+  const textRef = useRef(null);
+  const API = import.meta.env.VITE_API_URL;
+
+  const onSend = async () => {
+    try {
+      const raw = textRef.current?.value ?? "";
+      const body = JSON.parse(raw);
+      const res = await fetch(`${API}/demo/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setStatus("Tariff event sent successfully!");
+      setTimeout(() => setStatus(""), 3000);
+      onRefresh();
+    } catch (err) {
+      setStatus("Error: " + err.message);
+    }
   };
+
+  const onRefresh = async () => {
+    try {
+      const res = await fetch(`${API}/feed/latest`);
+      const data = await res.json();
+      const parsed = Array.isArray(data) ? data.map((d) => normalizeEvent(d)) : [];
+      setFeed(parsed);
+    } catch (err) {
+      setFeed([{ error: err.message }]);
+    }
+  };
+
+  useEffect(() => {
+    if (page === "home") onRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <NavBar />
+      <NavBar page={page} setPage={setPage} />
       <div style={{ flex: 1 }}>
-        {page === "home" && <HomePage />}
+        {page === "home" && (
+          <HomePage
+            textRef={textRef}
+            defaultJson={defaultJson}
+            status={status}
+            onSend={onSend}
+            feed={feed}
+            onRefresh={onRefresh}
+          />
+        )}
         {page === "about" && <AboutPage />}
         {page === "design" && <DesignPage />}
       </div>
