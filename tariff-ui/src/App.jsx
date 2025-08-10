@@ -412,7 +412,7 @@ function CheckItem({ children }) {
   );
 }
 
-}
+
 
 // ---------- App ----------
 export default function App() {
